@@ -52,20 +52,37 @@ def ewm_cov_np(x, y, alpha):
     return cov
 
 def fft_transform(arr):
+    """
+    Compute the Fast Fourier Transform of the input 1D array.
+    Returns complex frequency coefficients.
+    """
     return np.fft.fft(arr)
 
 def band_pass_filter(arr, low, high, fs):
+    """
+    Apply band-pass filter using FFT.
+    Arguments:
+        arr: input signal (1D numpy array)
+        low: low cutoff frequency (Hz)
+        high: high cutoff frequency (Hz)
+        fs: sampling frequency (Hz)
+    Returns:
+        filtered signal (real part of inverse FFT)
+    """
+    n = len(arr)
     fft_data = np.fft.fft(arr)
-    freqs = np.fft.fftfreq(len(arr), d=1/fs)
+    freqs = np.fft.fftfreq(n, d=1/fs)
     mask = (np.abs(freqs) >= low) & (np.abs(freqs) <= high)
     fft_data[~mask] = 0
-    return np.fft.ifft(fft_data).real
+    filtered_signal = np.fft.ifft(fft_data)
+    return filtered_signal.real
 
 def auto_rolling_mean(arr_or_series, window):
     if isinstance(arr_or_series, pd.Series):
         size = len(arr_or_series)
     else:
         size = arr_or_series.size
+
     if size > 1_000_000:
         return rolling_mean_numba(arr_or_series.values if isinstance(arr_or_series, pd.Series) else arr_or_series, window)
     elif size > 100_000:
